@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["node", "jest", "@testing-library/jest-dom"],
+    "allowJs": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src", "jest.polyfills.ts", "jest.setup.ts"]
+}

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopsphere-backend
+  namespace: gcp-simulation
+  labels:
+    app: shopsphere-backend
+    env: gcp-simulation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopsphere-backend
+      env: gcp-simulation
+  template:
+    metadata:
+      labels:
+        app: shopsphere-backend
+        env: gcp-simulation
+    spec:
+      containers:
+        - name: backend
+          image: shopsphere-backend:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: shopsphere-backend-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 15

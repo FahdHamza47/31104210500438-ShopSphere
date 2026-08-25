@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopsphere-frontend
+  namespace: gcp-simulation
+  labels:
+    app: shopsphere-frontend
+    env: gcp-simulation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopsphere-frontend
+      env: gcp-simulation
+  template:
+    metadata:
+      labels:
+        app: shopsphere-frontend
+        env: gcp-simulation
+    spec:
+      containers:
+        - name: frontend
+          image: shopsphere-frontend:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080

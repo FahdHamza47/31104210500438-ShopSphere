@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopsphere-frontend
+  namespace: aws-simulation
+  labels:
+    app: shopsphere-frontend
+    env: aws-simulation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopsphere-frontend
+      env: aws-simulation
+  template:
+    metadata:
+      labels:
+        app: shopsphere-frontend
+        env: aws-simulation
+    spec:
+      containers:
+        - name: frontend
+          image: shopsphere-frontend:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080

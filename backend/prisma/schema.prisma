@@ -1,0 +1,127 @@
+// ShopSphere — Prisma schema (PostgreSQL / Supabase)
+//
+// DATABASE_URL -> Supabase's pooled connection string (pgbouncer, port 6543),
+//                 used by the running app.
+// DIRECT_URL   -> Supabase's direct connection string (port 5432),
+//                 used only by `prisma migrate` / `prisma db push`.
+// Both are set as environment variables on the hosting platform — never committed.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  customer
+  admin
+}
+
+enum OrderStatus {
+  Pending
+  Processing
+  Shipped
+  Delivered
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(customer)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart   Cart?
+  orders Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  category    String
+  brand       String   @default("Generic")
+  stock       Int      @default(0)
+  images      String[]
+  rating      Float    @default(0)
+  numReviews  Int      @default(0) @map("num_reviews")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String  @map("cart_id")
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  items OrderItem[]
+
+  shippingFullName   String @map("shipping_full_name")
+  shippingAddress    String @map("shipping_address")
+  shippingCity       String @map("shipping_city")
+  shippingPostalCode String @map("shipping_postal_code")
+  shippingCountry    String @map("shipping_country")
+  shippingPhone      String @map("shipping_phone")
+
+  subtotal   Float
+  tax        Float
+  shipping   Float
+  totalPrice Float       @map("total_price")
+  status     OrderStatus @default(Pending)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  name      String
+  image     String  @default("")
+  price     Float
+  quantity  Int
+
+  @@map("order_items")
+}

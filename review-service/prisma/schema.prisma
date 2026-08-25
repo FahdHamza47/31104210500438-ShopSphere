@@ -1,0 +1,33 @@
+// ShopSphere Review Service — its own Prisma schema, its own database
+// credentials, deployed and versioned completely independently of the
+// main ShopSphere backend (Task 3.1: this is a move, not a copy — review
+// logic no longer exists anywhere in the main app).
+//
+// Uses the SAME Supabase Postgres project as the main app for convenience
+// (Supabase gives you one free project), but a genuinely separate `reviews`
+// table with no foreign keys into the main app's tables — the two services
+// never share an ORM connection, a schema file, or a deploy.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  userId    String   @map("user_id")
+  userName  String   @map("user_name")
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([productId])
+  @@map("reviews")
+}
