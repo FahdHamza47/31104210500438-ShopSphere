@@ -12,13 +12,8 @@ import { requestLogger } from "./middleware/requestLogger";
 
 const app = express();
 
-// Sets standard security headers (X-Content-Type-Options, HSTS,
-// X-Frame-Options, etc.) — rubric 1.3 "HTTP protections".
 app.use(helmet());
 
-// CORS_ORIGIN can hold one origin or a comma-separated list, so the same
-// code works across dev/staging/production (rubric 4.1) just by changing
-// the env var per environment. Falls back to sane defaults if unset.
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
   : [
