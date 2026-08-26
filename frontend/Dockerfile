@@ -2,8 +2,8 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-ARG VITE_API_URL=https://shopsphere-9d8pto4d.b4a.run/api
-ARG VITE_ASSET_URL=https://shopsphere-9d8pto4d.b4a.run
+ARG VITE_API_URL=https://31104210500438-shopsphere-backend-three.vercel.app/api
+ARG VITE_ASSET_URL=https://31104210500438-shopsphere-backend-three.vercel.app
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_ASSET_URL=$VITE_ASSET_URL
 
