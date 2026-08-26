@@ -31,7 +31,9 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
   try {
     const { productId, quantity } = req.body;
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) {
       res.status(404).json({ message: "Product not found" });
       return;
@@ -77,9 +79,11 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 export const updateCartItem = async (req: AuthRequest, res: Response) => {
   try {
     const { quantity } = req.body;
-    const { productId } = req.params;
+    const { productId } = req.params as { productId: string };
 
-    const cart = await prisma.cart.findUnique({ where: { userId: req.user!.id } });
+    const cart = await prisma.cart.findUnique({
+      where: { userId: req.user!.id },
+    });
     if (!cart) {
       res.status(404).json({ message: "Cart not found" });
       return;
@@ -111,9 +115,10 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
 // @route  DELETE /api/cart/:productId
 export const removeFromCart = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId } = req.params;
-
-    const cart = await prisma.cart.findUnique({ where: { userId: req.user!.id } });
+    const { productId } = req.params as { productId: string };
+    const cart = await prisma.cart.findUnique({
+      where: { userId: req.user!.id },
+    });
     if (!cart) {
       res.status(404).json({ message: "Cart not found" });
       return;
@@ -134,7 +139,9 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
 // @route  DELETE /api/cart
 export const clearCart = async (req: AuthRequest, res: Response) => {
   try {
-    const cart = await prisma.cart.findUnique({ where: { userId: req.user!.id } });
+    const cart = await prisma.cart.findUnique({
+      where: { userId: req.user!.id },
+    });
     if (cart) {
       await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     }

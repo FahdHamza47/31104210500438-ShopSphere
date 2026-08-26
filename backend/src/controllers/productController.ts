@@ -4,7 +4,7 @@ import prisma from "../config/db";
 import { uploadBufferToCloudinary } from "../utils/cloudinary";
 import { serializeProduct } from "../utils/serialize";
 
-// @route  GET /api/products/categories
+// @route   GET /api/products/categories
 export const getCategories = async (req: Request, res: Response) => {
   try {
     const rows = await prisma.product.findMany({
@@ -17,7 +17,7 @@ export const getCategories = async (req: Request, res: Response) => {
   }
 };
 
-// @route   GET /api/products
+// @route    GET /api/products
 // Supports: ?keyword=shirt&category=Clothing&minPrice=10&maxPrice=100
 //           &sort=price_asc&page=1&limit=8
 export const getProducts = async (req: Request, res: Response) => {
@@ -85,8 +85,9 @@ export const getProducts = async (req: Request, res: Response) => {
 // @route   GET /api/products/:id
 export const getProductById = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params as { id: string };
     const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
+      where: { id },
     });
     if (!product) {
       res.status(404).json({ message: "Product not found" });
@@ -132,8 +133,9 @@ export const createProduct = async (req: Request, res: Response) => {
 // @route   PUT /api/products/:id (Admin only)
 export const updateProduct = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params as { id: string };
     const existing = await prisma.product.findUnique({
-      where: { id: req.params.id },
+      where: { id },
     });
     if (!existing) {
       res.status(404).json({ message: "Product not found" });
@@ -152,7 +154,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
 
     const updatedProduct = await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id },
       data: {
         name: name ?? existing.name,
         description: description ?? existing.description,
@@ -173,14 +175,15 @@ export const updateProduct = async (req: Request, res: Response) => {
 // @route   DELETE /api/products/:id (Admin only)
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params as { id: string };
     const existing = await prisma.product.findUnique({
-      where: { id: req.params.id },
+      where: { id },
     });
     if (!existing) {
       res.status(404).json({ message: "Product not found" });
       return;
     }
-    await prisma.product.delete({ where: { id: req.params.id } });
+    await prisma.product.delete({ where: { id } });
     res.json({ message: "Product removed successfully" });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
