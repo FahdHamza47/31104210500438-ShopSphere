@@ -175,10 +175,11 @@ jobs:
   # ---------------------------------------------------------------------
   deploy-production:
     name: Deploy to production
-    needs: [backend-tests, frontend-tests, review-service-build, docker-build-check]
+    needs:
+      [backend-tests, frontend-tests, review-service-build, docker-build-check]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-    environment: production
+    environment: Production
     steps:
       - uses: actions/checkout@v4
 
