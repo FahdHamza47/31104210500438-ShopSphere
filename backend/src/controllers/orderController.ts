@@ -20,7 +20,7 @@ interface ShippingAddressPayload {
   phone: string;
 }
 
-// @route  POST /api/orders
+// @route   POST /api/orders
 export const createOrder = async (req: AuthRequest, res: Response) => {
   try {
     const {
@@ -44,24 +44,14 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Everything below runs in a single DB transaction: either every stock
-    // decrement + the order + the cart clear all succeed, or none of them
-    // do. This replaces the old manual "reserve, then roll back on
-    // failure" loop with an atomic transaction, which is both simpler and
-    // safe under concurrent requests (the old approach was not).
     const order = await prisma.$transaction(async (tx) => {
       for (const item of orderItems) {
-        // updateMany with a stock >= quantity guard is the atomic
-        // equivalent of Mongoose's findOneAndUpdate({stock: {$gte}}, ...).
         const result = await tx.product.updateMany({
           where: { id: item.product, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
 
         if (result.count === 0) {
-          // Throwing inside $transaction rolls back everything done so far
-          // in this callback, including any stock already decremented for
-          // earlier items in this same order.
           throw new OrderError(
             `Insufficient stock for "${item.name}". Please update your cart and try again.`,
           );
@@ -94,7 +84,6 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
         include: { items: true },
       });
 
-      // Clear the user's cart now that the order has been placed
       const cart = await tx.cart.findUnique({
         where: { userId: req.user!.id },
       });
@@ -115,7 +104,7 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// @route  GET /api/orders/myorders
+// @route   GET /api/orders/myorders
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
   try {
     const orders = await prisma.order.findMany({
@@ -129,7 +118,7 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// @route  GET /api/orders (Admin only)
+// @route   GET /api/orders (Admin only)
 export const getAllOrders = async (req: AuthRequest, res: Response) => {
   try {
     const orders = await prisma.order.findMany({
@@ -150,9 +139,10 @@ export const getAllOrders = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// @route  PUT /api/orders/:id/status (Admin only)
+// @route   PUT /api/orders/:id/status (Admin only)
 export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   try {
+    const { id } = req.params as { id: string };
     const { status } = req.body;
     const validStatuses = ["Pending", "Processing", "Shipped", "Delivered"];
 
@@ -162,7 +152,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     }
 
     const existing = await prisma.order.findUnique({
-      where: { id: req.params.id },
+      where: { id },
     });
     if (!existing) {
       res.status(404).json({ message: "Order not found" });
@@ -170,7 +160,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     }
 
     const order = await prisma.order.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status },
       include: { items: true },
     });
@@ -188,13 +178,8 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Small typed error so the transaction can distinguish "expected" business
-// failures (insufficient stock) from real 500-worthy errors.
 class OrderError extends Error {}
 
-// Reshapes a Prisma order (userId, camelCase shipping fields, items[]) into
-// the flatter `_id` / `orderItems` / `shippingAddress` shape the frontend
-// and existing tests expect.
 function serializeOrder(
   order: Prisma.OrderGetPayload<{ include: { items: true } }>,
 ) {

@@ -2,8 +2,10 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-ARG VITE_API_URL=https://shopsphere-9d8pto4d.b4a.run/api
-ARG VITE_ASSET_URL=https://shopsphere-9d8pto4d.b4a.run
+ARG VITE_API_URL=http://localhost:5000/api
+ARG VITE_ASSET_URL=http://localhost:5000
+ARG VITE_REVIEW_SERVICE_URL=http://localhost:5001/api
+ENV VITE_REVIEW_SERVICE_URL=$VITE_REVIEW_SERVICE_URL
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_ASSET_URL=$VITE_ASSET_URL
 
