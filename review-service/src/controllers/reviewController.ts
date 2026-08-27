@@ -6,7 +6,7 @@ import { AuthRequest } from "../middleware/authMiddleware";
 // Public — anyone browsing a product page can read its reviews.
 export const getProductReviews = async (req: Request, res: Response) => {
   try {
-    const { productId } = req.params;
+    const { productId } = req.params as { productId: string };
 
     const reviews = await prisma.review.findMany({
       where: { productId },
@@ -34,11 +34,13 @@ export const getProductReviews = async (req: Request, res: Response) => {
 // has no users table to look a display name up in.
 export const createReview = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId } = req.params;
+    const { productId } = req.params as { productId: string };
     const { name, rating, comment } = req.body;
 
     if (!name || !rating || !comment) {
-      res.status(400).json({ message: "name, rating, and comment are required" });
+      res
+        .status(400)
+        .json({ message: "name, rating, and comment are required" });
       return;
     }
 
@@ -78,7 +80,8 @@ export const createReview = async (req: AuthRequest, res: Response) => {
 // A user may delete their own review; an admin may delete any review.
 export const deleteReview = async (req: AuthRequest, res: Response) => {
   try {
-    const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+    const { id } = req.params as { id: string };
+    const review = await prisma.review.findUnique({ where: { id } });
     if (!review) {
       res.status(404).json({ message: "Review not found" });
       return;
@@ -89,7 +92,7 @@ export const deleteReview = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    await prisma.review.delete({ where: { id: req.params.id } });
+    await prisma.review.delete({ where: { id } });
     res.json({ message: "Review removed" });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
