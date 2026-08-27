@@ -166,13 +166,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ---------------------------------------------------------------------
-  # 5. Deploy to production — ONLY on a push (i.e. a merge) to main, and
-  #    only after every check above has passed. Uses the `production`
-  #    GitHub Environment, so its secrets are separate from repo-level
-  #    secrets and can be given required reviewers / wait timers in repo
-  #    settings for an extra manual gate if you want one.
-  # ---------------------------------------------------------------------
+  
   deploy-production:
     name: Deploy to production
     needs:
