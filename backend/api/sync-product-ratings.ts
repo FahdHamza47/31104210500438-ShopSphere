@@ -1,20 +1,3 @@
-// Vercel Serverless Function (Task 3.3) — a background workload that runs
-// OUTSIDE the main Express app in api/server.ts. Deployed as its own
-// function by Vercel because it lives under /api and is listed as its own
-// "build" in vercel.json.
-//
-// What it does: the review service (an independent microservice, see
-// ../../review-service) owns all review data. The main Product table still
-// carries denormalized `rating` / `numReviews` fields for fast product-list
-// rendering without a REST call per card. This function is what keeps those
-// denormalized fields honest — it pulls the current review aggregate for
-// every product from the review service over REST and writes it back into
-// Postgres via Prisma.
-//
-// Triggered on a schedule by Vercel Cron (see the `crons` entry in
-// vercel.json) — not by user traffic — which is what makes this a
-// background workload rather than a request-handling endpoint.
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import prisma from "../src/config/db";
 
