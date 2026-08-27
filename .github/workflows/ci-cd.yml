@@ -1,13 +1,4 @@
-name: CI/CD Pipeline
-
-# Task 4.1: install -> build -> deploy-to-production-on-main, with three
-# separate environments (development is local/unstaged, staging is Vercel's
-# automatic Preview deployment on every PR using Preview-scoped env vars set
-# in the Vercel dashboard, production is this workflow's `deploy` job using
-# the `production` GitHub Environment below). No credential ever appears in
-# this file or in a log line — every secret is referenced as
-# ${{ secrets.X }} and passed straight into an env var that tools read
-# silently; nothing is echoed.
+name: CI/CD Pipeline.
 
 on:
   push:
@@ -16,11 +7,6 @@ on:
     branches: [main]
 
 jobs:
-  # ---------------------------------------------------------------------
-  # 1. Install + test the backend against a real (throwaway) Postgres —
-  #    Prisma has no in-memory substitute, so CI spins one up as a service
-  #    container, runs migrations into it, then runs the suite.
-  # ---------------------------------------------------------------------
   backend-tests:
     name: Backend — install, build, test
     runs-on: ubuntu-latest
@@ -67,9 +53,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # ---------------------------------------------------------------------
-  # 2. Install + test the frontend
-  # ---------------------------------------------------------------------
   frontend-tests:
     name: Frontend — install, build, test
     runs-on: ubuntu-latest
@@ -98,9 +81,6 @@ jobs:
           VITE_ASSET_URL: http://localhost:5000
           VITE_REVIEW_SERVICE_URL: http://localhost:5001/api
 
-  # ---------------------------------------------------------------------
-  # 3. Review service — install, type-check, build
-  # ---------------------------------------------------------------------
   review-service-build:
     name: Review service — install, build
     runs-on: ubuntu-latest
@@ -119,9 +99,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
-          # `prisma generate` (postinstall) needs a DATABASE_URL to exist,
-          # even though it never connects to it — this is a placeholder,
-          # not a real credential.
           DATABASE_URL: postgresql://user:pass@localhost:5432/placeholder
 
       - name: Build (type-check + compile)
@@ -129,9 +106,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/placeholder
 
-  # ---------------------------------------------------------------------
-  # 4. Docker build verification — proves both images still build cleanly
-  # ---------------------------------------------------------------------
   docker-build-check:
     name: Docker build verification
     runs-on: ubuntu-latest
@@ -166,13 +140,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ---------------------------------------------------------------------
-  # 5. Deploy to production — ONLY on a push (i.e. a merge) to main, and
-  #    only after every check above has passed. Uses the `production`
-  #    GitHub Environment, so its secrets are separate from repo-level
-  #    secrets and can be given required reviewers / wait timers in repo
-  #    settings for an extra manual gate if you want one.
-  # ---------------------------------------------------------------------
   deploy-production:
     name: Deploy to production
     needs:
@@ -193,9 +160,7 @@ jobs:
       - name: Deploy backend
         working-directory: backend
         run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -211,10 +176,7 @@ jobs:
       - name: Deploy review service
         working-directory: review-service
         run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN" \
-            --scope "$VERCEL_ORG_ID"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -223,10 +185,7 @@ jobs:
       - name: Deploy frontend
         working-directory: frontend
         run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN" \
-            --scope "$VERCEL_ORG_ID"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
